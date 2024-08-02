@@ -39,6 +39,8 @@ export default function Home() {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredInventory, setFilteredInventory] = useState([]);
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, "inventory"));
@@ -52,6 +54,7 @@ export default function Home() {
     });
 
     setInventory(inventoryList);
+    setFilteredInventory(inventoryList);
   };
 
   useEffect(() => {
@@ -90,6 +93,20 @@ export default function Home() {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  // Filter the inventory based on the search term only when the button is clicked
+  const handleSearch = () => {
+    if (searchTerm.trim() === "") {
+      // If search term is empty, reset to full inventory
+      setFilteredInventory(inventory);
+    } else {
+      // Filter the inventory based on the search term
+      const filteredList = inventory.filter(({ name }) =>
+        name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredInventory(filteredList);
+    }
+  };
 
   return (
     <Box
@@ -136,6 +153,19 @@ export default function Home() {
       <Button variant="contained" onClick={handleOpen}>
         Add New Item
       </Button>
+      <Stack direction="row" width="800px" spacing={2} alignItems="center">
+        <TextField
+          id="search-bar"
+          label="Search"
+          variant="outlined"
+          fullWidth
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <Button variant="contained" onClick={handleSearch}>
+          Search
+        </Button>
+      </Stack>
       <Box border={"1px solid black"}>
         <Box
           width="800px"
@@ -150,7 +180,7 @@ export default function Home() {
           </Typography>
         </Box>
         <Stack width="800px" height="300px" spacing={2} overflow={"auto"}>
-          {inventory.map(({ name, quantity }) => (
+          {filteredInventory.map(({ name, quantity }) => (
             <Box
               key={name}
               width="100%"
